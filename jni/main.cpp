@@ -9,11 +9,6 @@ ISAUtils* sautils = NULL;
 static eTypeOfSettings g_tab = SetType_Mods; // replaced with our own tab on load
 static volatile bool g_active = false;       // guards every ScriptCommand call
 
-// ---------------------------------------------------------------------------
-// Opcodes used (verified against sa_mobile.json + enums.json).
-// Signature letters: i=int literal, f=float literal, v=var(in/out ptr),
-// s=string, b=bool(int).
-// ---------------------------------------------------------------------------
 DEFOPCODE(01F5, GET_PLAYER_CHAR,             iv);   // (playerIdx) -> charHandle
 DEFOPCODE(06AC, GET_CHAR_SPEED,              iv);   // (charHandle) -> speed
 DEFOPCODE(0818, IS_CHAR_IN_AIR,              i);    // (charHandle)
@@ -40,17 +35,6 @@ static const int WIDGET_ACCELERATE  = 2;   // WidgetId.Accelerate
 static const int WIDGET_BRAKE       = 3;   // WidgetId.Brake
 static const int WIDGET_SPRINT      = 31;  // WidgetId.ButtonSprint
 
-// ---------------------------------------------------------------------------
-// Language — display-only for now: switching the Language item itself
-// updates live, but the OTHER item names below are fixed at
-// AddSliderItem/AddButton time and there's no rename/refresh call in the
-// SAUtils interface to change them after the fact — so a language change
-// takes full effect on the *next* mod load, not instantly. Translations are
-// a first pass, not reviewed by native speakers.
-// CAVEAT: Japanese and Russian need glyphs GTA SA's stock mobile UI font may
-// not include. If they show as boxes/blanks in-game, they can be dropped
-// back to English.
-// ---------------------------------------------------------------------------
 enum class Lang { EN, JA, ES, ID, FR, PT, DE, RU, COUNT };
 static Lang g_lang = Lang::EN;
 
@@ -80,28 +64,22 @@ static void OnLanguageChanged(int, int newVal, void*)
     g_lang = (Lang)newVal;
 }
 
-// ---------------------------------------------------------------------------
-// Settings — plain runtime cache, seeded from (and written back through to)
-// AML Config on change. See BindInt() / OnIntSettingChanged() below.
-// ---------------------------------------------------------------------------
-struct Settings
 {
-    int sprintZoomX10      = 850;   // 85.0
-    int fallZoomX10        = 1100;  // 110.0
-    int parachuteZoomX10   = 950;   // 95.0
+    int sprintZoomX10      = 850;  
+    int fallZoomX10        = 1100;  
+    int parachuteZoomX10   = 950;
     int sprintZoomOutTime  = 700;
     int sprintZoomInTime   = 500;
     int fallZoomOutTime    = 3000;
     int fallZoomInTime     = 500;
     int parachuteZoomTime  = 800;
-    int vehicleZoomX10     = 900;   // 90.0
+    int vehicleZoomX10     = 900;   
     int vehicleZoomTime    = 800;
-    int vehicleZoomThresholdX10 = 80;  // 8.0 — deadzone, relative to the known on-foot CharSpeed anchor (6.5), not GET_CAR_SPEED's scale (never used here)
-    int vehicleSpeedThresholdX10 = 200; // 20.0 — speed at which vehicle zoom reaches full value
-    int charSpeedX10       = 65;    // 6.5 — verified from the original CameraFX.csa's own shipped default
-    int blendTransition    = 1;     // smooth_transition flag passed to CAMERA_SET_LERP_FOV
-    int weaponFovEnabled   = 1;     // toggle only, no slider — see kWeaponFovZoom/Time below
-} g_settings;
+    int vehicleZoomThresholdX10 = 80;  
+    int vehicleSpeedThresholdX10 = 200; 
+    int charSpeedX10       = 65;    
+    int blendTransition    = 1;     
+    int weaponFovEnabled   = 1;     
 
 // Internal constants for the weapon-FOV feature — deliberately not settings
 // sliders, per request. A modest zoom-in while wielding a heavy weapon on
@@ -124,12 +102,6 @@ static const char* DrawMs(int v, void*)
 }
 static const char* kOnOffBlue[2] = { "~b~OFF", "~b~ON" };
 
-// ---------------------------------------------------------------------------
-// AML Config persistence — pairs a runtime int with the ConfigEntry that
-// backs it in configs/CameraFX.ini. BindInt() both loads the starting value
-// (creating the ini with defaults on first run) and registers where to
-// write changes back to on every settings-menu edit.
-// ---------------------------------------------------------------------------
 struct BoundSetting { int* value; ConfigEntry* entry; };
 static BoundSetting g_bound[16];
 static int g_boundCount = 0;
