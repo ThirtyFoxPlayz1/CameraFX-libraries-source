@@ -81,10 +81,6 @@ static void OnLanguageChanged(int, int newVal, void*)
     int blendTransition    = 1;     
     int weaponFovEnabled   = 1;     
 
-// Internal constants for the weapon-FOV feature — deliberately not settings
-// sliders, per request. A modest zoom-in while wielding a heavy weapon on
-// foot without sprinting, distinct from (and smaller than) the sprint
-// zoom-out.
 static const float kWeaponFovZoom = 60.0f;
 static const int   kWeaponFovTime = 400;
 
